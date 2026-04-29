@@ -156,7 +156,7 @@ body {
     border-radius: 6px; 
     cursor: pointer;
     font-weight: bold; 
-    flex-shrink: 0; /* 確保按鈕永遠固定在底部不被擠扁 */
+    flex-shrink: 0;
     transition: background 0.2s, transform 0.1s;
 }
 .btn-clear:hover { background-color: #c0392b; }
@@ -232,3 +232,28 @@ body {
     background: rgba(44, 62, 80, 0.9); color: white; padding: 10px 25px;
     border-radius: 20px; font-size: 0.9rem; z-index: 10;
 }
+
+/* --- Modal 樣式 --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5); display: none; 
+    justify-content: center; align-items: center; z-index: 2000;
+}
+.modal-box {
+    background: white; padding: 25px; border-radius: 12px;
+    width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.modal-input {
+    width: 100%; padding: 10px; margin-top: 10px;
+    border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box;
+}
+.btn-modal-submit {
+    flex: 1; padding: 10px; background: var(--success-color); color: white;
+    border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+}
+.btn-modal-submit:hover { background: #219a52; }
+.btn-modal-cancel {
+    flex: 1; padding: 10px; background: #95a5a6; color: white;
+    border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+}
+.btn-modal-cancel:hover { background: #7f8c8d; }

@@ -14,9 +14,27 @@
         <p class="sidebar-hint">點擊選單項目，直接加入畫布。</p>
 
         <div class="menu-scroll-area">
+            
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion('acc-custom', this)">
+                    <span>🧪 自訂物質 (資料庫)</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content" id="acc-custom" style="display: none;">
+                    <div class="item-btn" style="background-color: var(--success-color); color: white; justify-content: center;" onclick="openCustomModal()">
+                        <span>➕ 新增反應物</span>
+                    </div>
+                    {% for name, smiles in custom_chems.items() %}
+                    <div class="item-btn" onclick="createNode('{{ smiles }}', '{{ name }}', 'reactant')">
+                        <span>{{ name }}</span><span>+</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
             <div class="accordion-section">
                 <div class="accordion-header active" onclick="toggleAccordion('acc-organic', this)">
-                    <span>📂 有機合成</span>
+                    <span> 有機合成 </span>
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content" id="acc-organic" style="display: flex;">
@@ -28,7 +46,7 @@
 
             <div class="accordion-section">
                 <div class="accordion-header" onclick="toggleAccordion('acc-inorganic', this)">
-                    <span>🪨 無機反應 & 金屬</span>
+                    <span> 無機反應 & 金屬 </span>
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content" id="acc-inorganic" style="display: none;">
@@ -45,12 +63,13 @@
 
             
         </div>
+
         <div class="instruction-box">
-                <b>操作指南：</b><br>
-                • 單擊節點：準備反應 (綠框)<br>
-                • 空白處拖曳：多選節點 (藍框)<br>
-                • 鍵盤 Delete：刪除所選節點<br>
-                • 節點右鍵：開啟刪除選單
+                <b>操作指南:</b><br>
+                • 單擊節點 : 準備反應 (綠框)<br>
+                • 空白處拖曳 : 多選節點 (藍框)<br>
+                • Delete : 刪除所選節點<br>
+                • 節點右鍵 : 開啟刪除選單
         </div>
         <button class="btn-clear" onclick="clearBoard()">🗑️ 清空工作區</button>
     </aside>
@@ -67,6 +86,20 @@
             <span>💡 提示：從左側點擊物質加入，單擊第一個節點，再點擊第二個進行反應。</span>
         </div>
     </main>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color: var(--primary-color);">🧪 新增自訂反應物</h3>
+            <p style="font-size: 0.85rem; color: #7f8c8d;">透過 RDKit 驗證並儲存至靜態資料庫 (JSON)。</p>
+            <input type="text" id="customName" class="modal-input" placeholder="顯示名稱 (如: 丙醇)">
+            <input type="text" id="customSmiles" class="modal-input" placeholder="SMILES 化學式 (如: CCCO)">
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-modal-submit" onclick="submitCustomChemical()">儲存並加入</button>
+                <button class="btn-modal-cancel" onclick="closeCustomModal()">取消</button>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

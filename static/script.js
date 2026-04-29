@@ -9,7 +9,7 @@ let connections = [];
 let nodeCounter = 0;
 let activeReactionNodeId = null; 
 
-// --- UI 互動：切換折疊選單 ---
+// 互動：切換折疊選單
 window.toggleAccordion = function(contentId, headerElement) {
     const content = document.getElementById(contentId);
     if (content.style.display === 'none') {
@@ -21,7 +21,7 @@ window.toggleAccordion = function(contentId, headerElement) {
     }
 }
 
-// --- 1. 新增節點 ---
+// 新增節點
 window.createNode = function(chemicalValue, displayName, type, x = null, y = null) {
     nodeCounter++;
     const nodeId = 'node-' + nodeCounter;
@@ -51,7 +51,7 @@ window.createNode = function(chemicalValue, displayName, type, x = null, y = nul
     return nodeId;
 }
 
-// --- 2. 點擊反應邏輯 ---
+// 點擊反應邏輯
 function handleNodeClick(e, nodeId) {
     if (isDragging) return;
     clearMultiSelection();
@@ -79,7 +79,7 @@ function handleNodeClick(e, nodeId) {
     }
 }
 
-// --- 3. 節點拖曳與連線 ---
+// 節點拖曳與連線
 let draggedNodeId = null;
 let offsetX = 0, offsetY = 0;
 let isDragging = false;
@@ -115,7 +115,7 @@ function stopDragNode() {
     setTimeout(() => isDragging = false, 50); 
 }
 
-// --- 4. 拉框多選 ---
+// 拉框多選
 let isSelectingBox = false;
 let selStartX = 0, selStartY = 0;
 
@@ -177,7 +177,7 @@ function clearMultiSelection() {
     document.querySelectorAll('.node.selected').forEach(el => el.classList.remove('selected'));
 }
 
-// --- 5. 刪除邏輯 ---
+// 刪除邏輯
 let contextTargetId = null;
 
 function showContextMenu(e, nodeId) {
@@ -214,7 +214,7 @@ function deleteNodeAndConnections(nodeId) {
     drawConnections();
 }
 
-// --- 6. 繪圖與 API 邏輯 ---
+// 繪圖與 API 邏輯
 function drawConnections() {
     svgLayer.innerHTML = '';
     connections.forEach(conn => {
@@ -279,4 +279,46 @@ window.clearBoard = function() {
     nodes = {}; connections = []; nodeCounter = 0; activeReactionNodeId = null;
     svgLayer.innerHTML = '';
     statusBar.children[0].textContent = "💡 提示：從左側點擊物質加入，單擊第一個節點，再點擊第二個進行反應。";
+}
+
+// Modal 控制邏輯
+window.openCustomModal = function() {
+    document.getElementById('customModal').style.display = 'flex';
+}
+
+window.closeCustomModal = function() {
+    document.getElementById('customModal').style.display = 'none';
+    document.getElementById('customName').value = '';
+    document.getElementById('customSmiles').value = '';
+}
+
+window.submitCustomChemical = async function() {
+    const name = document.getElementById('customName').value.trim();
+    const smiles = document.getElementById('customSmiles').value.trim();
+    
+    if (!name || !smiles) {
+        alert("名稱與 SMILES 不可為空！");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/add_chemical', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, smiles: smiles })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            alert("成功加入靜態資料庫！");
+            closeCustomModal();
+            // 重新整理頁面以載入新的 jinja template 資料
+            window.location.reload();
+        } else {
+            alert(data.message); // RDKit 驗證失敗的提示
+        }
+    } catch(e) {
+        console.error(e);
+        alert("伺服器連線錯誤！");
+    }
 }
