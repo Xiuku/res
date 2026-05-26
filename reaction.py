@@ -1,10 +1,21 @@
 import json
 import os
 from flask import Flask, jsonify, render_template, request
+# pyrefly: ignore [missing-import]
 from rdkit import Chem
+# pyrefly: ignore [missing-import]
 from rdkit.Chem import rdChemReactions
 
 app = Flask(__name__)
+
+PERIODIC_TABLE_FILE = 'periodic_table.json'
+periodic_table_data = []
+if os.path.exists(PERIODIC_TABLE_FILE):
+    with open(PERIODIC_TABLE_FILE, 'r', encoding='utf-8') as f:
+        try:
+            periodic_table_data = json.load(f)
+        except Exception as e:
+            print(f"Error loading periodic table: {e}")
 
 DYNAMIC_RULES = [
     {
@@ -60,6 +71,18 @@ REACTION_DB = {
     }
 }
 
+BASIC_BONDING_DB = {
+    frozenset(["Na", "Cl"]): {"formula": "NaCl", "name": "氯化鈉"},
+    frozenset(["H", "O"]): {"formula": "H2O", "name": "水"},
+    frozenset(["C", "O"]): {"formula": "CO2", "name": "二氧化碳"},
+    frozenset(["H", "Cl"]): {"formula": "HCl", "name": "氯化氫"},
+    frozenset(["Fe", "O"]): {"formula": "Fe2O3", "name": "氧化鐵"},
+    frozenset(["Na", "O"]): {"formula": "Na2O", "name": "氧化鈉"},
+    frozenset(["Mg", "O"]): {"formula": "MgO", "name": "氧化鎂"},
+    frozenset(["Ca", "O"]): {"formula": "CaO", "name": "氧化鈣"},
+    frozenset(["K", "Cl"]): {"formula": "KCl", "name": "氯化鉀"}
+}
+
 CUSTOM_CHEM_FILE = 'custom_chemicals.json'
 custom_chems = {}
 
@@ -75,6 +98,10 @@ if os.path.exists(CUSTOM_CHEM_FILE):
 @app.route('/')
 def index():
     return render_template('index.html', custom_chems=custom_chems)
+
+@app.route('/api/elements', methods=['GET'])
+def get_elements():
+    return jsonify(periodic_table_data)
 
 @app.route('/api/add_chemical', methods=['POST'])
 def add_chemical():
@@ -145,6 +172,19 @@ def solve_reaction():
                 print(f"RDKit Rule {rule['name']} Failed: {e}")
 
     input_set = set(inputs)
+    
+    # Check basic chemical bonding first
+    for key, val in BASIC_BONDING_DB.items():
+        if key == input_set:
+            return jsonify({
+                "success": True,
+                "equation": f"{list(input_set)[0]} + {list(input_set)[1]} → {val['formula']}",
+                "type": "基礎鍵結",
+                "energy": "鍵結形成 (通常放熱)",
+                "warning": "元素直接化合生成簡單分子",
+                "products": [{"name": val["name"], "value": val["formula"]}],
+                "is_dynamic": False
+            })
     for key, val in REACTION_DB.items():
         if key == input_set:
             return jsonify({

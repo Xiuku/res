@@ -87,6 +87,19 @@
         </div>
     </main>
 
+    <!-- Periodic Table Bottom Drawer -->
+    <div id="periodic-drawer" class="bottom-drawer">
+        <div class="drawer-handle" onclick="togglePeriodicDrawer()">
+            <span class="handle-arrow">▲</span>
+            <span class="handle-text">展開元素週期表</span>
+        </div>
+        <div class="drawer-content">
+            <div id="periodic-table-grid" class="periodic-grid">
+                <!-- Elements injected here via JS -->
+            </div>
+        </div>
+    </div>
+
     <div id="customModal" class="modal-overlay">
         <div class="modal-box">
             <h3 style="margin-top:0; color: var(--primary-color);">🧪 新增自訂反應物</h3>

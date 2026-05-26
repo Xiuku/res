@@ -1,0 +1,542 @@
+[
+    {
+        "atomicNumber": 1,
+        "symbol": "H",
+        "name": "氫",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 2,
+        "symbol": "He",
+        "name": "氦",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 3,
+        "symbol": "Li",
+        "name": "鋰",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 4,
+        "symbol": "Be",
+        "name": "鈹",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 5,
+        "symbol": "B",
+        "name": "硼",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 6,
+        "symbol": "C",
+        "name": "碳",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 7,
+        "symbol": "N",
+        "name": "氮",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 8,
+        "symbol": "O",
+        "name": "氧",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 9,
+        "symbol": "F",
+        "name": "氟",
+        "category": "halogen"
+    },
+    {
+        "atomicNumber": 10,
+        "symbol": "Ne",
+        "name": "氖",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 11,
+        "symbol": "Na",
+        "name": "鈉",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 12,
+        "symbol": "Mg",
+        "name": "鎂",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 13,
+        "symbol": "Al",
+        "name": "鋁",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 14,
+        "symbol": "Si",
+        "name": "矽",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 15,
+        "symbol": "P",
+        "name": "磷",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 16,
+        "symbol": "S",
+        "name": "硫",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 17,
+        "symbol": "Cl",
+        "name": "氯",
+        "category": "halogen"
+    },
+    {
+        "atomicNumber": 18,
+        "symbol": "Ar",
+        "name": "氬",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 19,
+        "symbol": "K",
+        "name": "鉀",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 20,
+        "symbol": "Ca",
+        "name": "鈣",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 21,
+        "symbol": "Sc",
+        "name": "鈧",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 22,
+        "symbol": "Ti",
+        "name": "鈦",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 23,
+        "symbol": "V",
+        "name": "釩",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 24,
+        "symbol": "Cr",
+        "name": "鉻",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 25,
+        "symbol": "Mn",
+        "name": "錳",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 26,
+        "symbol": "Fe",
+        "name": "鐵",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 27,
+        "symbol": "Co",
+        "name": "鈷",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 28,
+        "symbol": "Ni",
+        "name": "鎳",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 29,
+        "symbol": "Cu",
+        "name": "銅",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 30,
+        "symbol": "Zn",
+        "name": "鋅",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 31,
+        "symbol": "Ga",
+        "name": "鎵",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 32,
+        "symbol": "Ge",
+        "name": "鍺",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 33,
+        "symbol": "As",
+        "name": "砷",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 34,
+        "symbol": "Se",
+        "name": "硒",
+        "category": "nonmetal"
+    },
+    {
+        "atomicNumber": 35,
+        "symbol": "Br",
+        "name": "溴",
+        "category": "halogen"
+    },
+    {
+        "atomicNumber": 36,
+        "symbol": "Kr",
+        "name": "氪",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 37,
+        "symbol": "Rb",
+        "name": "銣",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 38,
+        "symbol": "Sr",
+        "name": "鍶",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 39,
+        "symbol": "Y",
+        "name": "釔",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 40,
+        "symbol": "Zr",
+        "name": "鋯",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 41,
+        "symbol": "Nb",
+        "name": "鈮",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 42,
+        "symbol": "Mo",
+        "name": "鉬",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 43,
+        "symbol": "Tc",
+        "name": "鎝",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 44,
+        "symbol": "Ru",
+        "name": "釕",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 45,
+        "symbol": "Rh",
+        "name": "銠",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 46,
+        "symbol": "Pd",
+        "name": "鈀",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 47,
+        "symbol": "Ag",
+        "name": "銀",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 48,
+        "symbol": "Cd",
+        "name": "鎘",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 49,
+        "symbol": "In",
+        "name": "銦",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 50,
+        "symbol": "Sn",
+        "name": "錫",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 51,
+        "symbol": "Sb",
+        "name": "銻",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 52,
+        "symbol": "Te",
+        "name": "碲",
+        "category": "metalloid"
+    },
+    {
+        "atomicNumber": 53,
+        "symbol": "I",
+        "name": "碘",
+        "category": "halogen"
+    },
+    {
+        "atomicNumber": 54,
+        "symbol": "Xe",
+        "name": "氙",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 55,
+        "symbol": "Cs",
+        "name": "銫",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 56,
+        "symbol": "Ba",
+        "name": "鋇",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 57,
+        "symbol": "Ln",
+        "name": "鑭",
+        "category": "lanthanide"
+    },
+    {
+        "atomicNumber": 72,
+        "symbol": "Hf",
+        "name": "鉿",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 73,
+        "symbol": "Ta",
+        "name": "鉭",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 74,
+        "symbol": "W",
+        "name": "鎢",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 75,
+        "symbol": "Re",
+        "name": "錸",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 76,
+        "symbol": "Os",
+        "name": "鋨",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 77,
+        "symbol": "Ir",
+        "name": "銥",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 78,
+        "symbol": "Pt",
+        "name": "鉑",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 79,
+        "symbol": "Au",
+        "name": "金",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 80,
+        "symbol": "Hg",
+        "name": "汞",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 81,
+        "symbol": "Tl",
+        "name": "鉈",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 82,
+        "symbol": "Pb",
+        "name": "鉛",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 83,
+        "symbol": "Bi",
+        "name": "鉍",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 84,
+        "symbol": "Po",
+        "name": "釙",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 85,
+        "symbol": "At",
+        "name": "砈",
+        "category": "halogen"
+    },
+    {
+        "atomicNumber": 86,
+        "symbol": "Rn",
+        "name": "氡",
+        "category": "noble-gas"
+    },
+    {
+        "atomicNumber": 87,
+        "symbol": "Fr",
+        "name": "鍅",
+        "category": "alkali-metal"
+    },
+    {
+        "atomicNumber": 88,
+        "symbol": "Ra",
+        "name": "鐳",
+        "category": "alkaline-earth-metal"
+    },
+    {
+        "atomicNumber": 89,
+        "symbol": "Ac",
+        "name": "錒",
+        "category": "actinide"
+    },
+    {
+        "atomicNumber": 104,
+        "symbol": "Rf",
+        "name": "鑪",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 105,
+        "symbol": "Db",
+        "name": "𨧀",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 106,
+        "symbol": "Sg",
+        "name": "𨭎",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 107,
+        "symbol": "Bh",
+        "name": "𨨏",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 108,
+        "symbol": "Hs",
+        "name": "𨭆",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 109,
+        "symbol": "Mt",
+        "name": "䥑",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 110,
+        "symbol": "Ds",
+        "name": "鐽",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 111,
+        "symbol": "Rg",
+        "name": "錀",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 112,
+        "symbol": "Cn",
+        "name": "鎶",
+        "category": "transition-metal"
+    },
+    {
+        "atomicNumber": 113,
+        "symbol": "Nh",
+        "name": "鉨",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 114,
+        "symbol": "Fl",
+        "name": "鈇",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 115,
+        "symbol": "Mc",
+        "name": "鏌",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 116,
+        "symbol": "Lv",
+        "name": "鉝",
+        "category": "post-transition-metal"
+    },
+    {
+        "atomicNumber": 117,
+        "symbol": "Ts",
+        "name": "鿬",
+        "category": "unknown"
+    },
+    {
+        "atomicNumber": 118,
+        "symbol": "Og",
+        "name": "鿫",
+        "category": "noble-gas"
+    }
+]

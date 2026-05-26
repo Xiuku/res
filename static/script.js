@@ -322,3 +322,60 @@ window.submitCustomChemical = async function() {
         alert("伺服器連線錯誤！");
     }
 }
+
+// --- Periodic Table Drawer Logic ---
+window.togglePeriodicDrawer = function() {
+    const drawer = document.getElementById('periodic-drawer');
+    drawer.classList.toggle('open');
+}
+
+function getGridColumn(atomicNumber) {
+    if (atomicNumber === 1) return 1;
+    if (atomicNumber === 2) return 18;
+    if (atomicNumber >= 3 && atomicNumber <= 10) {
+        return atomicNumber <= 4 ? atomicNumber - 2 : atomicNumber + 8;
+    }
+    if (atomicNumber >= 11 && atomicNumber <= 18) {
+        return atomicNumber <= 12 ? atomicNumber - 10 : atomicNumber;
+    }
+    if (atomicNumber >= 19 && atomicNumber <= 36) return atomicNumber - 18;
+    if (atomicNumber === 47) return 11;
+    if (atomicNumber === 79) return 11;
+    if (atomicNumber === 80) return 12;
+    return 'auto';
+}
+
+async function loadPeriodicTable() {
+    try {
+        const res = await fetch('/api/elements');
+        const elements = await res.json();
+        
+        const grid = document.getElementById('periodic-table-grid');
+        grid.innerHTML = '';
+        
+        elements.forEach(el => {
+            const btn = document.createElement('div');
+            btn.className = `element-btn ${el.category}`;
+            const col = getGridColumn(el.atomicNumber);
+            if (col !== 'auto') {
+                btn.style.gridColumn = col;
+            }
+            
+            btn.innerHTML = `
+                <div class="element-symbol">${el.symbol}</div>
+                <div class="element-name">${el.name}</div>
+            `;
+            
+            btn.addEventListener('click', () => {
+                createNode(el.symbol, `${el.name} (${el.symbol})`, 'reactant');
+            });
+            
+            grid.appendChild(btn);
+        });
+    } catch(e) {
+        console.error("Failed to load periodic table", e);
+    }
+}
+
+// Load periodic table on startup
+window.addEventListener('DOMContentLoaded', loadPeriodicTable);
