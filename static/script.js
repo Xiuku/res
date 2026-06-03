@@ -281,52 +281,69 @@ window.clearBoard = function() {
     statusBar.children[0].textContent = "💡 提示：從左側點擊物質加入，單擊第一個節點，再點擊第二個進行反應。";
 }
 
-// Modal 控制邏輯
-window.openCustomModal = function() {
-    document.getElementById('customModal').style.display = 'flex';
-}
-
-window.closeCustomModal = function() {
-    document.getElementById('customModal').style.display = 'none';
-    document.getElementById('customName').value = '';
-    document.getElementById('customSmiles').value = '';
-}
-
-window.submitCustomChemical = async function() {
-    const name = document.getElementById('customName').value.trim();
-    const smiles = document.getElementById('customSmiles').value.trim();
+// 動態加入反應物邏輯 (呼叫 API 進行 SMILES 搜尋)
+window.addReactantWithSmiles = async function(queryName, displayName) {
+    statusBar.children[0].textContent = `⏳ 正在搜尋並載入 [${displayName}]...`;
     
-    if (!name || !smiles) {
-        alert("名稱與 SMILES 不可為空！");
-        return;
-    }
-
     try {
         const res = await fetch('/api/add_chemical', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, smiles: smiles })
+            body: JSON.stringify({ name: queryName, smiles: '' })
         });
         const data = await res.json();
         
         if (data.success) {
-            alert("成功加入靜態資料庫！");
-            closeCustomModal();
-            // 重新整理頁面以載入新的 jinja template 資料
-            window.location.reload();
+            createNode(data.smiles, displayName || data.name, 'reactant');
         } else {
-            alert(data.message); // RDKit 驗證失敗的提示
+            alert(data.message);
+            statusBar.children[0].textContent = `❌ 加入失敗: ${data.message}`;
         }
     } catch(e) {
         console.error(e);
         alert("伺服器連線錯誤！");
+        statusBar.children[0].textContent = `❌ 伺服器連線錯誤！`;
     }
+}
+
+window.quickAddReactant = function() {
+    const name = document.getElementById('quickAddName').value.trim();
+    if (!name) return;
+    addReactantWithSmiles(name, name);
+    document.getElementById('quickAddName').value = '';
 }
 
 // --- Periodic Table Drawer Logic ---
 window.togglePeriodicDrawer = function() {
     const drawer = document.getElementById('periodic-drawer');
     drawer.classList.toggle('open');
+}
+
+window.switchDrawerTab = function(tabName) {
+    const tabPeriodic = document.getElementById('tab-periodic');
+    const tabPresets = document.getElementById('tab-presets');
+    const btnPeriodic = document.getElementById('tab-btn-periodic');
+    const btnPresets = document.getElementById('tab-btn-presets');
+    
+    if (tabName === 'periodic') {
+        tabPeriodic.style.display = 'block';
+        tabPresets.style.display = 'none';
+        btnPeriodic.classList.add('active');
+        btnPeriodic.style.borderBottomColor = 'var(--accent-color)';
+        btnPeriodic.style.color = 'var(--accent-color)';
+        btnPresets.classList.remove('active');
+        btnPresets.style.borderBottomColor = 'transparent';
+        btnPresets.style.color = '#7f8c8d';
+    } else {
+        tabPeriodic.style.display = 'none';
+        tabPresets.style.display = 'block';
+        btnPresets.classList.add('active');
+        btnPresets.style.borderBottomColor = 'var(--accent-color)';
+        btnPresets.style.color = 'var(--accent-color)';
+        btnPeriodic.classList.remove('active');
+        btnPeriodic.style.borderBottomColor = 'transparent';
+        btnPeriodic.style.color = '#7f8c8d';
+    }
 }
 
 function getGridColumn(atomicNumber) {
@@ -367,7 +384,7 @@ async function loadPeriodicTable() {
             `;
             
             btn.addEventListener('click', () => {
-                createNode(el.symbol, `${el.name} (${el.symbol})`, 'reactant');
+                addReactantWithSmiles(el.symbol, `${el.name} (${el.symbol})`);
             });
             
             grid.appendChild(btn);

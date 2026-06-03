@@ -1,12 +1,19 @@
 import json
 import os
+import requests
 from flask import Flask, jsonify, render_template, request
 # pyrefly: ignore [missing-import]
 from rdkit import Chem
 # pyrefly: ignore [missing-import]
 from rdkit.Chem import rdChemReactions
+# pyrefly: ignore [missing-import]
+from rdkit import RDLogger
+# 停用 RDKit 的解析錯誤與警告輸出
+RDLogger.DisableLog('rdApp.*')
+from local_engine import LocalReactionPredictor
 
 app = Flask(__name__)
+predictor = LocalReactionPredictor()
 
 PERIODIC_TABLE_FILE = 'periodic_table.json'
 periodic_table_data = []
@@ -17,71 +24,7 @@ if os.path.exists(PERIODIC_TABLE_FILE):
         except Exception as e:
             print(f"Error loading periodic table: {e}")
 
-DYNAMIC_RULES = [
-    {
-        "name": "酯化反應 (Esterification)",
-        "rxn": rdChemReactions.ReactionFromSmarts("[CX3:1](=[OX1:2])[OX2H1:3].[OX2H1:4][CX4:5]>>[CX3:1](=[OX1:2])[OX2:4][CX4:5].O"),
-        "energy": "微放熱",
-        "warning": "產物通常具有水果香味"
-    },
-    {
-        "name": "醯胺合成 (Amide Formation)",
-        "rxn": rdChemReactions.ReactionFromSmarts("[CX3:1](=[OX1:2])[OX2H1:3].[NX3H2:4][C:5]>>[CX3:1](=[OX1:2])[NX3H1:4][C:5].O"),
-        "energy": "放熱",
-        "warning": "生成穩定的醯胺鍵結"
-    },
-    {
-        "name": "縮醛反應 (Acetal Formation)",
-        "rxn": rdChemReactions.ReactionFromSmarts("[CX3:1](=[OX1:2])[C:3].[OX2H1:4][CX4:5]>>[C:3][C:1]([OX2:2][CX4:5])([OX2:4][CX4:5]).O"),
-        "energy": "微吸熱",
-        "warning": "需要酸性催化"
-    }
-]
-
-SMILES_MAP = {
-    "Acetic Acid": "CC(=O)O", 
-    "Ethanol": "CCO",         
-    "Methylamine": "CN",      
-    "Na": "[Na]",
-    "H2O": "O",
-    "HCl": "Cl",
-    "NaOH": "[Na+].[OH-]",
-    "Fe": "[Fe]",             
-    "CuSO4": "[Cu+2].[O-]S(=O)(=O)[O-]", 
-    "NaHCO3": "[Na+].OC(=O)[O-]",
-    "CaCO3": "[Ca+2].[O-]C(=O)[O-]"
-}
-
-REACTION_DB = {
-    frozenset(["Na", "H2O"]): {
-        "equation": "2Na + 2H₂O → 2NaOH + H₂ ↑",
-        "type": "劇烈反應", "energy": "高度放熱", "warning": "警告：產生易燃氫氣",
-        "products": [
-            {"name": "氫氧化鈉 (NaOH)", "value": "NaOH"},
-            {"name": "氫氣 (H2)", "value": "H2"}
-        ]
-    },
-    frozenset(["HCl", "NaOH"]): {
-        "equation": "HCl + NaOH → NaCl + H₂O",
-        "type": "酸鹼中和", "energy": "放熱", "warning": "安全",
-        "products": [
-            {"name": "氯化鈉 (NaCl)", "value": "NaCl"},
-            {"name": "水 (H2O)", "value": "H2O"}
-        ]
-    }
-}
-
-BASIC_BONDING_DB = {
-    frozenset(["Na", "Cl"]): {"formula": "NaCl", "name": "氯化鈉"},
-    frozenset(["H", "O"]): {"formula": "H2O", "name": "水"},
-    frozenset(["C", "O"]): {"formula": "CO2", "name": "二氧化碳"},
-    frozenset(["H", "Cl"]): {"formula": "HCl", "name": "氯化氫"},
-    frozenset(["Fe", "O"]): {"formula": "Fe2O3", "name": "氧化鐵"},
-    frozenset(["Na", "O"]): {"formula": "Na2O", "name": "氧化鈉"},
-    frozenset(["Mg", "O"]): {"formula": "MgO", "name": "氧化鎂"},
-    frozenset(["Ca", "O"]): {"formula": "CaO", "name": "氧化鈣"},
-    frozenset(["K", "Cl"]): {"formula": "KCl", "name": "氯化鉀"}
-}
+# DYNAMIC_RULES 已經由 local_engine 內建的 ML 模板取代，因此移除手寫規則
 
 CUSTOM_CHEM_FILE = 'custom_chemicals.json'
 custom_chems = {}
@@ -90,14 +33,52 @@ if os.path.exists(CUSTOM_CHEM_FILE):
     with open(CUSTOM_CHEM_FILE, 'r', encoding='utf-8') as f:
         try:
             custom_chems = json.load(f)
-            for name, smiles in custom_chems.items():
-                SMILES_MAP[name] = smiles
         except Exception as e:
             print(f"Error loading custom chemicals: {e}")
 
+def get_smiles_from_name(name):
+    """
+    自動化學名稱解析器：
+    1. 呼叫 PubChem API 查詢 (優先使用，確保 SMILES 正確性)
+    2. 測試原始字串是否本來就是合法 SMILES
+    3. 查閱本機 custom_chemicals
+    4. 測試是否為無機元素符號 (加上括號)
+    """
+    if not name: return None
+
+    #查閱本機 custom_chemicals
+    if name in custom_chems:
+        return custom_chems[name]
+
+    #呼叫 PubChem API
+    try:
+        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/property/IsomericSMILES/JSON"
+        res = requests.get(url, timeout=3)
+        if res.status_code == 200:
+            data = res.json()
+            props = data['PropertyTable']['Properties'][0]
+            smiles = props.get('IsomericSMILES') or props.get('CanonicalSMILES') or props.get('SMILES')
+            if smiles:
+                return smiles
+            else:
+                print(f"[PubChem API] 回傳資料中不包含 SMILES: {props}")
+        else:
+            print(f"[PubChem API] 找不到 '{name}' 或請求失敗，狀態碼: {res.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"[PubChem API] 網路請求 '{name}' 發生錯誤: {e}")
+    except Exception as e:
+        print(f"[PubChem API] 解析 '{name}' 資料時發生未知的錯誤: {e}")
+
+    #測試原始字串是否本來就是合法SMILES (例如有機子集或使用者手動輸入的 SMILES)
+    mol = Chem.MolFromSmiles(name)
+    if mol: return name
+    
+    return None
+
 @app.route('/')
 def index():
-    return render_template('index.html', custom_chems=custom_chems)
+    element_symbols = [el['symbol'] for el in periodic_table_data] if periodic_table_data else []
+    return render_template('index.html', custom_chems=custom_chems, element_symbols=element_symbols)
 
 @app.route('/api/elements', methods=['GET'])
 def get_elements():
@@ -109,16 +90,18 @@ def add_chemical():
     name = data.get('name', '').strip()
     smiles = data.get('smiles', '').strip()
 
-    if not name or not smiles:
-        return jsonify({"success": False, "message": "名稱與 SMILES 不能為空"})
+    # 若使用者沒填寫 SMILES，我們嘗試自動從 API 抓取
+    if not smiles:
+        smiles = get_smiles_from_name(name)
+        if not smiles:
+            return jsonify({"success": False, "message": f"無法從公開資料庫自動找到 '{name}' 的 SMILES，請手動輸入。"})
 
-    # 使用 RDKit 驗證輸入的 SMILES 是否合法
+    # 使用 RDKit 驗證 SMILES 是否合法
     mol = Chem.MolFromSmiles(smiles)
     if not mol:
-        return jsonify({"success": False, "message": "RDKit 無法解析此 SMILES，請檢查格式是否正確！"})
+        return jsonify({"success": False, "message": f"解析失敗，'{smiles}' 不是合法的 SMILES！"})
 
-    # 驗證成功，存入記憶體與 JSON 檔案中
-    SMILES_MAP[name] = smiles
+    # 驗證成功，存入 JSON 檔案中
     custom_chems[name] = smiles
 
     with open(CUSTOM_CHEM_FILE, 'w', encoding='utf-8') as f:
@@ -134,70 +117,39 @@ def solve_reaction():
     if len(inputs) != 2:
         return jsonify({"success": False, "message": "目前動態引擎僅支援雙物種反應"})
 
-    smiles_1 = SMILES_MAP.get(inputs[0], inputs[0])
-    smiles_2 = SMILES_MAP.get(inputs[1], inputs[1])
+    # 透過自動解析器將名稱轉換為 SMILES
+    smiles_1 = get_smiles_from_name(inputs[0])
+    smiles_2 = get_smiles_from_name(inputs[1])
+    
+    if not smiles_1 or not smiles_2:
+        failed_name = inputs[0] if not smiles_1 else inputs[1]
+        return jsonify({"success": False, "message": f"系統無法辨識 '{failed_name}' 的化學結構，請先透過左側選單將其加入靜態資料庫。"})
     
     mol1 = Chem.MolFromSmiles(smiles_1)
     mol2 = Chem.MolFromSmiles(smiles_2)
 
+    # 使用 A+B 本機 ML 預測引擎進行預測
+    # 此作法取代了原先人工寫死的 DYNAMIC_RULES
     if mol1 and mol2:
-        for rule in DYNAMIC_RULES:
-            try:
-                products = rule["rxn"].RunReactants((mol1, mol2))
-                if not products:
-                    products = rule["rxn"].RunReactants((mol2, mol1))
-                    
-                if products:
-                    product_list = []
-                    for idx, prod_mol in enumerate(products[0]):
-                        prod_smiles = Chem.MolToSmiles(prod_mol)
-                        if idx == 0:
-                            prod_name = f"{prod_smiles} (主產物)"
-                        else:
-                            prod_name = f"{prod_smiles} (副產物)"
-                        
-                        product_list.append({"name": prod_name, "value": prod_smiles})
+        prediction_result = predictor.predict([smiles_1, smiles_2])
+        if prediction_result["success"]:
+            product_list = []
+            for idx, prod_smiles in enumerate(prediction_result["products"]):
+                prod_name = f"{prod_smiles} (主產物)" if idx == 0 else f"{prod_smiles} (副產物)"
+                product_list.append({"name": prod_name, "value": prod_smiles})
 
-                    equation_str = f"{smiles_1} + {smiles_2} → " + " + ".join([p["value"] for p in product_list])
-                    return jsonify({
-                        "success": True,
-                        "equation": equation_str,
-                        "type": rule["name"],
-                        "energy": rule["energy"],
-                        "warning": rule["warning"],
-                        "products": product_list,
-                        "is_dynamic": True
-                    })
-            except Exception as e:
-                print(f"RDKit Rule {rule['name']} Failed: {e}")
-
-    input_set = set(inputs)
-    
-    # Check basic chemical bonding first
-    for key, val in BASIC_BONDING_DB.items():
-        if key == input_set:
+            equation_str = f"{smiles_1} + {smiles_2} → " + " + ".join([p["value"] for p in product_list])
             return jsonify({
                 "success": True,
-                "equation": f"{list(input_set)[0]} + {list(input_set)[1]} → {val['formula']}",
-                "type": "基礎鍵結",
-                "energy": "鍵結形成 (通常放熱)",
-                "warning": "元素直接化合生成簡單分子",
-                "products": [{"name": val["name"], "value": val["formula"]}],
-                "is_dynamic": False
+                "equation": equation_str,
+                "type": f"AI/ML 預測路徑 ({prediction_result['template_used']})",
+                "energy": "依反應不同",
+                "warning": "由本機模型推導生成",
+                "products": product_list,
+                "is_dynamic": True
             })
-    for key, val in REACTION_DB.items():
-        if key == input_set:
-            return jsonify({
-                "success": True,
-                "equation": val["equation"],
-                "type": val["type"],
-                "energy": val["energy"],
-                "warning": val["warning"],
-                "products": val.get("products", []),
-                "is_dynamic": False
-            })
-            
-    return jsonify({"success": False, "message": "無化學反應發生，或尚未定義此規則"})
+
+    return jsonify({"success": False, "message": "ML 引擎未能預測出合理的化學反應。"})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -271,7 +271,7 @@ body {
 
 .status-bar {
     position: absolute;
-    bottom: 60px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(44, 62, 80, 0.9);
@@ -366,7 +366,7 @@ body {
 }
 
 .drawer-handle {
-    height: 40px;
+    height: 35px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -385,6 +385,32 @@ body {
     background: rgba(52, 152, 219, 0.9);
 }
 
+.drawer-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid #ccc;
+}
+
+.drawer-tab active {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 3px solid var(--accent-color);
+    color: var(--accent-color);
+    flex: 1;
+    text-align: center;
+}
+
+.drawer-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 3px solid transparent;
+    color: #7f8c8d;
+    flex: 1;
+    text-align: center;
+}
+
 .handle-arrow {
     transition: transform 0.3s;
 }
@@ -394,6 +420,7 @@ body {
 }
 
 .drawer-content {
+    position: relative;
     padding: 20px;
     height: 45vh;
     /* Adjust height as needed */
