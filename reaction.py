@@ -11,9 +11,11 @@ from rdkit import RDLogger
 # 停用 RDKit 的解析錯誤與警告輸出
 RDLogger.DisableLog('rdApp.*')
 from local_engine import LocalReactionPredictor
+from bo_optimizer import LocalBayesianOptimizer
 
 app = Flask(__name__)
 predictor = LocalReactionPredictor()
+bo_optimizer = LocalBayesianOptimizer()
 
 PERIODIC_TABLE_FILE = 'periodic_table.json'
 periodic_table_data = []
@@ -79,6 +81,10 @@ def get_smiles_from_name(name):
 def index():
     element_symbols = [el['symbol'] for el in periodic_table_data] if periodic_table_data else []
     return render_template('index.html', custom_chems=custom_chems, element_symbols=element_symbols)
+
+@app.route('/edbo')
+def edbo_page():
+    return render_template('edbo.html')
 
 @app.route('/api/elements', methods=['GET'])
 def get_elements():
@@ -150,6 +156,20 @@ def solve_reaction():
             })
 
     return jsonify({"success": False, "message": "ML 引擎未能預測出合理的化學反應。"})
+
+@app.route('/api/optimize', methods=['POST'])
+def optimize_reaction():
+    data = request.json
+    parameters_space = data.get('parameters_space', {})
+    historical_results = data.get('historical_results', [])
+    target_col = data.get('target_col', 'yield')
+    maximize = data.get('maximize', True)
+    
+    if not parameters_space or not historical_results:
+        return jsonify({"success": False, "message": "請提供 parameters_space 與 historical_results"})
+        
+    result = bo_optimizer.suggest_next_experiment(parameters_space, historical_results, target_col, maximize)
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True)

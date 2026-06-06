@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDBO 反應條件最佳化儀表板 - Pro</title>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* EDBO dashboard specific layout & micro-interactions */
+        .edbo-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            padding: 25px;
+            height: calc(100vh - 50px);
+            overflow-y: auto;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .edbo-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edbo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid rgba(52, 152, 219, 0.2);
+            padding-bottom: 8px;
+        }
+
+        /* 2-Column Grid Layout config */
+        .col-lg-6 {
+            grid-column: span 6;
+        }
+        .col-lg-4 {
+            grid-column: span 4;
+        }
+        .col-lg-8 {
+            grid-column: span 8;
+        }
+        .col-lg-12 {
+            grid-column: span 12;
+        }
+
+        @media (max-width: 1200px) {
+            .col-lg-6, .col-lg-4, .col-lg-8 {
+                grid-column: span 12;
+            }
+        }
+
+        /* Forms & Inputs styling */
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #57606f;
+        }
+
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #ced6e0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        .btn-action {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-danger {
+            background-color: #ff4757;
+        }
+
+        .btn-secondary {
+            background-color: #747d8c;
+        }
+
+        /* Parameters List and Badges styling */
+        .param-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .param-item {
+            background: rgba(52, 152, 219, 0.05);
+            border: 1px solid rgba(52, 152, 219, 0.15);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .param-name {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .param-values {
+            font-size: 0.75rem;
+            color: #747d8c;
+            word-break: break-all;
+        }
+
+        /* Tables inside cards */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 10px;
+            max-height: 250px;
+            border-radius: 8px;
+            border: 1px solid #e1e9f0;
+        }
+
+        .edbo-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .edbo-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 10px 12px;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .edbo-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        .edbo-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Glassmorphic Recommendation Container */
+        .recommendation-panel {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.08) 0%, rgba(52, 152, 219, 0.08) 100%);
+            border: 2px dashed rgba(39, 174, 96, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .rec-metric-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .rec-metric {
+            background: white;
+            border: 1px solid rgba(39, 174, 96, 0.2);
+            border-radius: 10px;
+            padding: 10px 15px;
+            flex: 1;
+            min-width: 120px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rec-metric-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--success-color);
+        }
+
+        .rec-metric-label {
+            font-size: 0.75rem;
+            color: #747d8c;
+            margin-top: 3px;
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(44, 62, 80, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status alerts */
+        .status-alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .alert-info {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            border-left: 4px solid #2196f3;
+        }
+
+        .alert-warning {
+            background-color: #fff3e0;
+            color: #e65100;
+            border-left: 4px solid #ff9800;
+        }
+
+        .alert-danger {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">🧪 合成拓撲引擎</div>
+        <p class="sidebar-hint">貝氏實驗優化與反饋分析</p>
+
+        <div class="nav-menu">
+            <a href="/" class="nav-item">🌐 反應拓撲圖</a>
+            <a href="/edbo" class="nav-item active">📊 EDBO 條件優化</a>
+        </div>
+
+        <div class="instruction-box">
+            <b>貝氏最佳化 (EDBO):</b><br>
+            • 以高斯過程迴歸擬合空間<br>
+            • 利用採集函數 (Acquisition) 推薦實驗點<br>
+            • 在最少步驟下逼近全局最優產率<br>
+            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+            <button class="btn-action btn-secondary" id="btn-load-defaults" onclick="loadDefaultData()" style="width:100%; font-size: 0.8rem; padding: 6px;">💡 載入預設歷史範例</button>
+        </div>
+    </aside>
+
+    <main class="main-content" style="background-color: #f1f5f9;">
+        <div class="status-bar" id="status-bar" style="position: static; transform: none; margin: 15px 25px 5px 25px; border-radius: 12px; text-align: center;">
+            <span>💡 提示：設定反應空間與輸入歷史實驗結果，按下下方「開始 EDBO 最佳化」以計算最優條件。</span>
+        </div>
+
+        <div class="edbo-container">
+            <!-- Parameter Space Setup -->
+            <div class="edbo-card col-lg-4">
+                <h3 class="card-title">⚙️ 1. 參數空間 (Search Space)</h3>
+                <div class="param-list" id="param-list-container">
+                    <!-- Dynamic Parameter List -->
+                </div>
+                
+                <div style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; margin-top: auto;">
+                    <h4 style="margin-top: 0; font-size: 0.9rem; color: var(--primary-color);">新增參數維度</h4>
+                    <div class="form-group">
+                        <label for="newParamName">參數名稱 (如 temperature)</label>
+                        <input type="text" class="form-control" id="newParamName" placeholder="例如: catalyst_load">
+                    </div>
+                    <div class="form-group">
+                        <label for="newParamValues">候選數值空間 (半形逗號分隔)</label>
+                        <input type="text" class="form-control" id="newParamValues" placeholder="例如: 1.0, 2.5, 5.0, 10.0">
+                    </div>
+                    <button class="btn-action" id="btn-add-param" onclick="addNewParameter()" style="width: 100%;">➕ 加入參數維度</button>
+                </div>
+            </div>
+
+            <!-- Historical Results and Target -->
+            <div class="edbo-card col-lg-8">
+                <h3 class="card-title">📋 2. 歷史實驗數據 (Historical Runs)</h3>
+                
+                <!-- Optimization Target Setup -->
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; background: rgba(52,152,219,0.05); padding: 12px; border-radius: 10px; border: 1px dashed rgba(52,152,219,0.2);">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="target-col-input">優化指標欄位 (Target)</label>
+                        <input type="text" class="form-control" id="target-col-input" value="yield" placeholder="如 yield 或 ee">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="maximize-select">優化方向</label>
+                        <select class="form-control" id="maximize-select">
+                            <option value="true" selected>最大化指標 (Maximize)</option>
+                            <option value="false">最小化指標 (Minimize)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- History Table -->
+                <div class="table-container">
+                    <table class="edbo-table" id="history-table">
+                        <thead>
+                            <tr id="history-table-header">
+                                <!-- Dynamic Headers -->
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add New History Data Form -->
+                <div style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; margin-top: auto;">
+                    <h4 style="margin-top: 0; font-size: 0.9rem; color: var(--primary-color);">新增單筆實驗結果</h4>
+                    <div id="add-history-inputs" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+                        <!-- Dynamic Input Fields based on params -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Process and Suggestions -->
+            <div class="edbo-card col-lg-12">
+                <h3 class="card-title">🚀 3. 最佳化演算與 EDBO 條件推薦</h3>
+                
+                <!-- Run Button -->
+                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <button class="btn-action btn-success" id="btn-run-optimization" onclick="runBayesianOptimization()" style="font-size: 1.1rem; padding: 12px 40px; border-radius: 30px; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);">
+                        ⚙️ 啟動 EDBO 最佳化計算
+                    </button>
+                </div>
+
+                <!-- Status Alerts -->
+                <div class="status-alert alert-info" id="alert-info-box"></div>
+                <div class="status-alert alert-warning" id="alert-warning-box"></div>
+                <div class="status-alert alert-danger" id="alert-error-box"></div>
+
+                <!-- Recommendation Output -->
+                <div id="optimization-results-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="margin-top: 0; color: var(--primary-color);">🌟 最優推薦實驗條件</h4>
+                        <div class="recommendation-panel" id="best-rec-panel">
+                            <!-- Injected Best Recommendation Info -->
+                        </div>
+
+                        <h4 style="margin-top: 15px; color: var(--primary-color);">📊 候選推薦條件 (前 5 組)</h4>
+                        <div class="table-container" style="max-height: 180px;">
+                            <table class="edbo-table">
+                                <thead id="candidate-table-header">
+                                    <!-- Headers -->
+                                </thead>
+                                <tbody id="candidate-table-body">
+                                    <!-- Injected Candidates -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Progress Visualization Chart -->
+                    <div style="display: flex; flex-direction: column;">
+                        <h4 style="margin-top: 0; color: var(--primary-color);">📈 實驗指標歷程追蹤</h4>
+                        <div style="flex: 1; background: white; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                            <canvas id="yieldChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading overlay screen -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">正在調用 EDBO 核心引擎，分析高斯空間模型...</div>
+        <div style="font-size: 0.8rem; opacity: 0.8; font-weight: normal;">(這可能需要 5-10 秒，請勿關閉視窗)</div>
+    </div>
+
+    <script>
+        // Core state management
+        let parameters = {
+            'temperature': [20, 40, 60, 80],
+            'concentration': [0.1, 0.2, 0.5, 1.0]
+        };
+
+        let historyData = [
+            { 'temperature': 20, 'concentration': 0.1, 'yield': 15.0 },
+            { 'temperature': 40, 'concentration': 0.2, 'yield': 45.0 }
+        ];
+
+        let lastSuggestedExperiment = null;
+        let chartInstance = null;
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', () => {
+            renderParameters();
+            renderHistoryTable();
+            renderAddHistoryForm();
+        });
+
+        // 1. Render parameter dimensions list
+        function renderParameters() {
+            const container = document.getElementById('param-list-container');
+            container.innerHTML = '';
+
+            Object.entries(parameters).forEach(([name, vals]) => {
+                const item = document.createElement('div');
+                item.className = 'param-item';
+                item.innerHTML = `
+                    <div class="param-info">
+                        <span class="param-name">${name}</span>
+                        <span class="param-values">[${vals.join(', ')}]</span>
+                    </div>
+                    <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 0.75rem;" onclick="deleteParameter('${name}')">🗑️</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Add parameter
+        function addNewParameter() {
+            const nameInput = document.getElementById('newParamName');
+            const valuesInput = document.getElementById('newParamValues');
+            const name = nameInput.value.trim().replace(/\s+/g, '_');
+            const rawValues = valuesInput.value.trim();
+
+            if (!name) {
+                alert('請輸入變數名稱！');
+                return;
+            }
+            if (parameters[name]) {
+                alert('已存在相同名稱的變數！');
+                return;
+            }
+            if (!rawValues) {
+                alert('請輸入數值空間！');
+                return;
+            }
+
+            // Parse comma-separated list
+            const vals = rawValues.split(',').map(v => {
+                const trimmed = v.trim();
+                const num = Number(trimmed);
+                return isNaN(num) ? trimmed : num;
+            });
+
+            parameters[name] = vals;
+            
+            // Clear inputs
+            nameInput.value = '';
+            valuesInput.value = '';
+
+            renderParameters();
+            renderHistoryTable();
+            renderAddHistoryForm();
+        }
+
+        // Delete parameter
+        function deleteParameter(name) {
+            if (Object.keys(parameters).length <= 1) {
+                alert('必須保留至少一個變數參數維度！');
+                return;
+            }
+            if (confirm(`確定刪除參數 [${name}]？這將重置歷史實驗中對應欄位的數值。`)) {
+                delete parameters[name];
+                
+                // Clean history data columns
+                historyData.forEach(row => {
+                    delete row[name];
+                });
+
+                renderParameters();
+                renderHistoryTable();
+                renderAddHistoryForm();
+            }
+        }
+
+        // 2. Render historical data table
+        function renderHistoryTable() {
+            const headerRow = document.getElementById('history-table-header');
+            const tbody = document.getElementById('history-table-body');
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+
+            // Clear table
+            headerRow.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Add param headers
+            const keys = Object.keys(parameters);
+            keys.forEach(k => {
+                const th = document.createElement('th');
+                th.textContent = k;
+                headerRow.appendChild(th);
+            });
+
+            // Add target & action header
+            const thTarget = document.createElement('th');
+            thTarget.textContent = `${targetCol} (指標)`;
+            headerRow.appendChild(thTarget);
+
+            const thAction = document.createElement('th');
+            thAction.textContent = '操作';
+            thAction.style.width = '60px';
+            headerRow.appendChild(thAction);
+
+            // Add rows
+            historyData.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                
+                // Render parameters values
+                keys.forEach(k => {
+                    const td = document.createElement('td');
+                    td.textContent = row[k] !== undefined ? row[k] : '-';
+                    tr.appendChild(td);
+                });
+
+                // Render target value
+                const tdVal = document.createElement('td');
+                tdVal.textContent = row[targetCol] !== undefined ? row[targetCol] : '-';
+                tdVal.style.fontWeight = 'bold';
+                tr.appendChild(tdVal);
+
+                // Render actions
+                const tdAction = document.createElement('td');
+                tdAction.innerHTML = `
+                    <button class="btn-action btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="deleteHistoryRow(${idx})">🗑️</button>
+                `;
+                tr.appendChild(tdAction);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Delete historical row
+        function deleteHistoryRow(index) {
+            historyData.splice(index, 1);
+            renderHistoryTable();
+            updateChart();
+        }
+
+        // Render input inputs dynamically for adding history row
+        function renderAddHistoryForm() {
+            const container = document.getElementById('add-history-inputs');
+            container.innerHTML = '';
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+
+            // Inputs for params
+            Object.entries(parameters).forEach(([name, vals]) => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.style.minWidth = '120px';
+                div.style.flex = '1';
+                
+                // If options are short, render selection. Otherwise input.
+                let optionsHtml = vals.map(v => `<option value="${v}">${v}</option>`).join('');
+                
+                div.innerHTML = `
+                    <label>${name}</label>
+                    <select class="form-control history-input-field" data-key="${name}">
+                        ${optionsHtml}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+
+            // Target input field
+            const divTarget = document.createElement('div');
+            divTarget.className = 'form-group';
+            divTarget.style.minWidth = '120px';
+            divTarget.style.flex = '1';
+            divTarget.innerHTML = `
+                <label>${targetCol} 數值</label>
+                <input type="number" step="any" class="form-control" id="newHistoryTargetValue" placeholder="例如: 85.5">
+            `;
+            container.appendChild(divTarget);
+
+            // Add button
+            const divBtn = document.createElement('div');
+            divBtn.className = 'form-group';
+            divBtn.innerHTML = `
+                <button class="btn-action btn-success" onclick="addHistoryRecord()">➕ 新增紀錄</button>
+            `;
+            container.appendChild(divBtn);
+        }
+
+        // Add historical record to list
+        function addHistoryRecord() {
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+            const targetVal = parseFloat(document.getElementById('newHistoryTargetValue').value.trim());
+
+            if (isNaN(targetVal)) {
+                alert('請輸入有效的反應指標指標值！');
+                return;
+            }
+
+            const record = {};
+            const inputs = document.querySelectorAll('.history-input-field');
+            inputs.forEach(inp => {
+                const key = inp.getAttribute('data-key');
+                const val = inp.value;
+                // Parse number if possible
+                const num = Number(val);
+                record[key] = isNaN(num) ? val : num;
+            });
+
+            record[targetCol] = targetVal;
+            historyData.push(record);
+
+            // Reset target field
+            document.getElementById('newHistoryTargetValue').value = '';
+
+            renderHistoryTable();
+            updateChart();
+        }
+
+        // Change target name trigger
+        document.getElementById('target-col-input').addEventListener('input', () => {
+            renderHistoryTable();
+            renderAddHistoryForm();
+        });
+
+        // 3. Load default template samples
+        function loadDefaultData() {
+            parameters = {
+                'temperature': [20, 40, 60, 80],
+                'concentration': [0.1, 0.2, 0.5, 1.0]
+            };
+
+            historyData = [
+                { 'temperature': 20, 'concentration': 0.1, 'yield': 15.0 },
+                { 'temperature': 40, 'concentration': 0.2, 'yield': 45.0 }
+            ];
+
+            document.getElementById('target-col-input').value = 'yield';
+            document.getElementById('maximize-select').value = 'true';
+
+            renderParameters();
+            renderHistoryTable();
+            renderAddHistoryForm();
+            updateChart();
+            
+            // Hide previous results
+            document.getElementById('optimization-results-container').style.display = 'none';
+            hideAlerts();
+            
+            const statusBarText = document.getElementById('status-bar').children[0];
+            statusBarText.textContent = "💡 成功載入預設範例 (雙維度空間與2組歷史數據)！";
+        }
+
+        // 4. API Optimization trigger
+        async function runBayesianOptimization() {
+            if (historyData.length === 0) {
+                alert('歷史實驗數據不可為空！');
+                return;
+            }
+
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+            const maximize = document.getElementById('maximize-select').value === 'true';
+            
+            // Open spinner loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            hideAlerts();
+
+            try {
+                const response = await fetch('/api/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        parameters_space: parameters,
+                        historical_results: historyData,
+                        target_col: targetCol,
+                        maximize: maximize
+                    })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('loadingOverlay').style.display = 'none';
+
+                if (data.success) {
+                    displayResults(data, targetCol, maximize);
+                } else {
+                    showAlert('error', `計算失敗: ${data.message}`);
+                }
+
+            } catch (err) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                console.error(err);
+                showAlert('error', `連線異常：無法與優化器服務端取得通訊。`);
+            }
+        }
+
+        // Helpers to display success optimization results
+        function displayResults(data, targetCol, maximize) {
+            // Uncollapse results pane
+            document.getElementById('optimization-results-container').style.display = 'grid';
+
+            // Show alert feedback status
+            if (data.is_fallback) {
+                showAlert('warning', data.message);
+            } else {
+                showAlert('info', data.message);
+            }
+
+            const nextExp = data.next_experiment;
+            lastSuggestedExperiment = nextExp;
+            
+            // Render Recommended Card
+            const panel = document.getElementById('best-rec-panel');
+            let conditionText = Object.entries(nextExp)
+                .map(([k, v]) => `<strong>${k}</strong> = <span style="color:#27ae60; font-size:1.1rem;">${v}</span>`)
+                .join(' &nbsp;•&nbsp; ');
+
+            panel.innerHTML = `
+                <div style="font-size: 1.05rem; line-height: 1.6;">
+                    🎯 建議下一個反應條件組合：<br>
+                    <div style="background: white; padding: 12px 18px; border-radius: 8px; margin: 10px 0; border: 1px solid rgba(0,0,0,0.06); text-align: center;">
+                        ${conditionText}
+                    </div>
+                </div>
+                <button class="btn-action btn-success" onclick="adoptRecommendationPrompt()" style="align-self: center; width: 100%;">
+                    📥 將此推薦實驗結果登錄回歷史紀錄
+                </button>
+            `;
+
+            // Render Candidates table
+            const tableHeader = document.getElementById('candidate-table-header');
+            const tableBody = document.getElementById('candidate-table-body');
+            
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            const keys = Object.keys(parameters);
+            
+            // Header columns
+            const thRank = document.createElement('th');
+            thRank.textContent = '推薦排序';
+            thRank.style.width = '70px';
+            tableHeader.appendChild(thRank);
+
+            keys.forEach(k => {
+                const th = document.createElement('th');
+                th.textContent = k;
+                tableHeader.appendChild(th);
+            });
+
+            // Row columns
+            const list = data.all_proposals || [nextExp];
+            list.forEach((cand, idx) => {
+                const tr = document.createElement('tr');
+                if (idx === 0) tr.style.backgroundColor = 'rgba(39, 174, 96, 0.05)';
+                
+                const tdRank = document.createElement('td');
+                tdRank.textContent = `第 ${idx + 1} 順位`;
+                tdRank.style.fontWeight = 'bold';
+                tr.appendChild(tdRank);
+
+                keys.forEach(k => {
+                    const td = document.createElement('td');
+                    td.textContent = cand[k] !== undefined ? cand[k] : '-';
+                    tr.appendChild(td);
+                });
+
+                tableBody.appendChild(tr);
+            });
+
+            // Draw progression charts
+            updateChart();
+        }
+
+        // Active learning feedback loop helper
+        function adoptRecommendationPrompt() {
+            if (!lastSuggestedExperiment) return;
+
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+            
+            // Generate info message of recommendation
+            let specStr = Object.entries(lastSuggestedExperiment)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(', ');
+
+            const userVal = prompt(`請輸入該推薦實驗條件 [${specStr}] 的實際測得 [${targetCol}] 數值:`);
+            if (userVal === null) return; // User cancelled
+            
+            const numericVal = parseFloat(userVal.trim());
+            if (isNaN(numericVal)) {
+                alert('請輸入有效的數字結果！');
+                return;
+            }
+
+            // Create record
+            const newRecord = { ...lastSuggestedExperiment };
+            newRecord[targetCol] = numericVal;
+
+            historyData.push(newRecord);
+
+            // Refresh table and chart
+            renderHistoryTable();
+            updateChart();
+
+            // Clear recommendation panel and trigger message
+            document.getElementById('optimization-results-container').style.display = 'none';
+            hideAlerts();
+            
+            const statusBarText = document.getElementById('status-bar').children[0];
+            statusBarText.textContent = `✅ 已成功登錄實驗條件 [${specStr}]，結果為 ${targetCol}=${numericVal}。您可以再次點擊優化來計算下一步！`;
+        }
+
+        // Chart.js Drawing configuration
+        function updateChart() {
+            const ctx = document.getElementById('yieldChart').getContext('2d');
+            const targetCol = document.getElementById('target-col-input').value.trim() || 'yield';
+
+            // Map data
+            const labels = historyData.map((_, idx) => `第 ${idx + 1} 次實驗`);
+            const dataValues = historyData.map(row => row[targetCol] !== undefined ? parseFloat(row[targetCol]) : 0);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (historyData.length === 0) {
+                return;
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `實驗 ${targetCol} 指標歷程`,
+                        data: dataValues,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.15)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#2c3e50',
+                        pointBorderColor: '#3498db',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        tension: 0.15,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: targetCol,
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Alert message panels management
+        function showAlert(type, msg) {
+            hideAlerts();
+            const boxId = `alert-${type}-box`;
+            const box = document.getElementById(boxId);
+            if (box) {
+                box.textContent = msg;
+                box.style.display = 'block';
+            }
+        }
+
+        function hideAlerts() {
+            document.querySelectorAll('.status-alert').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

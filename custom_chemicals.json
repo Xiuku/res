@@ -87,5 +87,7 @@
     "NaHCO3": "C(=O)(O)[O-].[Na+]",
     "HCl": "Cl",
     "Methane": "C",
-    "Acetic Acid": "CC(=O)O"
+    "Acetic Acid": "CC(=O)O",
+    "Acetone": "CC(=O)C",
+    "Ethanol": "CCO"
 }

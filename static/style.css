@@ -511,3 +511,36 @@ body {
     background: #d9e9db;
     border-color: #000000;
 }
+
+/* --- Side Navigation Styles --- */
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    color: #bdc3c7;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+    color: white;
+    background: var(--accent-color);
+}
