@@ -16,20 +16,53 @@ except ImportError:
 
 # 隱藏的基礎化學反應模板庫 (涵蓋常見的反應核心)
 HIDDEN_TEMPLATES = [
+    # 1. 基礎無機與氧化還原
+    {"id": "T_ATOMIC_HALOGENATION", "name": "原子鹵化反應 (Atomic Halogenation)", "smarts": "[H:1].[F,Cl,Br,I:2]>>[*:2][H:1]"},
+    {"id": "T_METAL_CARBONATE_FORMATION", "name": "金屬碳酸鹽生成 (Metal Carbonate Formation)", "smarts": "([O-2:1].[Ca+2,Mg+2,Ba+2,Sr+2:2]).[O:3]=[C:4]=[O:5]>>([*:2].[O-:1][C:4](=[O:3])[O-:5])"},
     {"id": "T_HALOGENATION", "name": "鹵素化反應 (Halogenation)", "smarts": "[H:1][H:2].[F,Cl,Br,I:3][F,Cl,Br,I:4]>>[*:3][H:1].[*:4][H:2]"},
     {"id": "T_WATER", "name": "氫氧化反應 (Water Formation)", "smarts": "[H:1][H:2].[O:3]=[O:4]>>[H:1][O:3][H:2]"},
-    {"id": "T_ELEMENT_OXIDATION", "name": "元素燃燒/氧化 (Element Oxidation)", "smarts": "[*:1].[O:2]=[O:3]>>[O:2]=[*:1]=[O:3]"},
+    {"id": "T_ALKALI_HALIDE", "name": "鹼金屬鹵化物生成 (Alkali Halide Formation)", "smarts": "[Li,Na,K,Rb,Cs:1].[F,Cl,Br,I:2][F,Cl,Br,I:3]>>[*:1+].[*:2-]"},
+    {"id": "T_ELEMENT_OXIDATION", "name": "非金屬燃燒/氧化 (Non-metal Oxidation)", "smarts": "[C,S,P:1].[O:2]=[O:3]>>[O:2]=[*:1]=[O:3]"},
+    {"id": "T_METAL_OXIDATION", "name": "金屬氧化 (Metal Oxidation)", "smarts": "[Mg,Ca,Zn,Fe,Cu,Ba,Sr:1].[O:2]=[O:3]>>[*:1]=[O:2]"},
+    {"id": "T_METAL_WATER", "name": "金屬與水反應 (Metal-Water)", "smarts": "[Mg,Ca,Zn,Fe,Li,Na,K:1].[O;D0:2]>>[*:1]=[O:2].[H][H]"},
+    {"id": "T_METAL_CO2", "name": "金屬還原二氧化碳 (Metal-CO2)", "smarts": "[Mg,Ca,Zn:1].[O:2]=[C:3]=[O:4]>>[*:1]=[O:2].[C:3]"},
+    {"id": "T_NEUTRALIZATION_HX", "name": "酸鹼中和 (HX)", "smarts": "[OH-:1].[Li+,Na+,K+,Ca+2,Mg+2:2].[F,Cl,Br,I:3]>>[*:2].[*:3-]"},
+    {"id": "T_NEUTRALIZATION_H2SO4", "name": "酸鹼中和 (H2SO4)", "smarts": "[OH-:1].[Li+,Na+,K+:2].O=S(=O)(O)O>>[*:2].[*:2].[O-]S(=O)(=O)[O-]"},
+    {"id": "T_NEUTRALIZATION_HNO3", "name": "酸鹼中和 (HNO3)", "smarts": "[OH-:1].[Li+,Na+,K+,Ca+2,Mg+2:2].O=[N+]([O-])O>>[*:2].O=[N+]([O-])[O-]"},
+    {"id": "T_METAL_ACID_HX", "name": "金屬與酸反應 (Metal-Acid HX)", "smarts": "[Li,Na,K,Mg,Ca,Zn,Fe:1].[F,Cl,Br,I:2]>>[*:1+].[*:2-]"},
+    
+    # 2. 縮合與取代反應
     {"id": "T_ESTERIFICATION", "name": "酯化反應 (Esterification)", "smarts": "[CX3:1](=[OX1:2])[OX2H1:3].[OX2H1:4][C:5]>>[CX3:1](=[OX1:2])[OX2:4][C:5].[OX2H2:3]"},
     {"id": "T_AMIDATION", "name": "醯胺化反應 (Amidation)", "smarts": "[CX3:1](=[OX1:2])[OX2H1:3].[NX3H2:4][C,H:5]>>[CX3:1](=[OX1:2])[NX3H1:4][C,H:5].[OX2H2:3]"},
-    {"id": "T_SUZUKI", "name": "Suzuki Coupling", "smarts": "[c:1]-[Br,I,Cl].[c:2]-[B](O)O>>[c:1]-[c:2]"},
-    {"id": "T_GRIGNARD", "name": "Grignard Addition", "smarts": "[CX3:1](=[OX1:2]).[CX4:3]-[Mg]-[Br,Cl,I]>>[CX4:1](-[OX2H1:2])-[CX4:3]"},
     {"id": "T_ETHERIFICATION", "name": "醚化反應 (Etherification)", "smarts": "[C:1][OX2H1:2].[C:3][OX2H1:4]>>[C:1][OX2:2][C:3]"},
+    {"id": "T_HYDROLYSIS_ESTER", "name": "酯水解反應 (Ester Hydrolysis)", "smarts": "[CX3:1](=[OX1:2])[OX2:3][C:4].[O:5]>>[CX3:1](=[OX1:2])[OH].[C:4][OH]"},
+    {"id": "T_SAPONIFICATION", "name": "皂化反應 (Saponification)", "smarts": "[CX3:1](=[OX1:2])[OX2:3][C:4].[OH-:5].[Na+,K+:6]>>[CX3:1](=[OX1:2])[O-:5].[*:6].[OX2H:3][C:4]"},
+    {"id": "T_TRANSESTERIFICATION", "name": "酯交換反應 (Transesterification)", "smarts": "[CX3:1](=[O:2])[OX2:3][C:4].[OH:5][C:6]>>[CX3:1](=[O:2])[OX2:5][C:6].[OH][C:4]"},
+    {"id": "T_SN2_SUBSTITUTION", "name": "親核取代反應 (Sn2 Substitution)", "smarts": "[C:1]-[Cl,Br,I].[O,N,S&H1,H2:2]>>[C:1]-[O,N,S:2]"},
+    {"id": "T_SCHIFF_BASE", "name": "亞胺生成 (Imine Formation)", "smarts": "[CX3:1]=[OX1:2].[NX3H2:3]>>[CX3:1]=[NX2:3]"},
+    
+    # 3. 碳-碳偶聯與有機金屬反應
+    {"id": "T_SUZUKI", "name": "Suzuki Coupling 偶聯反應", "smarts": "[c,C&X3:1]-[Br,I,Cl].[c,C&X3:2]-[B](O)O>>[c,C&X3:1]-[c,C&X3:2]"},
+    {"id": "T_GRIGNARD", "name": "Grignard Addition 加成", "smarts": "[CX3:1](=[OX1:2]).[CX4:3]-[Mg]-[Br,Cl,I]>>[CX4:1](-[OX2H1:2])-[CX4:3]"},
+    
+    # 4. 芳香烴取代與環加成
     {"id": "T_DIELS_ALDER", "name": "Diels-Alder 環加成 (Cycloaddition)", "smarts": "[C:1]=[C:2]-[C:3]=[C:4].[C:5]=[C:6]>>[C:1]1-[C:2]=[C:3]-[C:4]-[C:5]-[C:6]1"},
     {"id": "T_FRIEDEL_CRAFTS", "name": "Friedel-Crafts 烷基化 (Alkylation)", "smarts": "[c:1].[C:2]-[Cl,Br,I]>>[c:1]-[C:2]"},
-    {"id": "T_HYDROLYSIS_ESTER", "name": "酯水解反應 (Ester Hydrolysis)", "smarts": "[CX3:1](=[OX1:2])[OX2:3][C:4].[O:5]>>[CX3:1](=[OX1:2])[OH].[C:4][OH]"},
-    {"id": "T_SCHIFF_BASE", "name": "亞胺生成 (Imine Formation)", "smarts": "[CX3:1]=[OX1:2].[NX3H2:3]>>[CX3:1]=[NX2:3]"},
+    {"id": "T_FRIEDEL_CRAFTS_ACYLATION", "name": "Friedel-Crafts 醯基化 (Acylation)", "smarts": "[c:1].[CX3:2](=[O:3])[Cl,Br,I]>>[c:1]-[CX3:2](=[O:3])"},
+    {"id": "T_NITRATION", "name": "芳香烴硝化 (Nitration)", "smarts": "[c:1].O=[N+]([O-])O>>[c:1]-[N+]([O-])=O"},
+    {"id": "T_SULFONATION", "name": "芳香烴磺化 (Sulfonation)", "smarts": "[c:1].O=S(=O)(O)O>>[c:1]-S(=O)(=O)O"},
+    
+    # 5. 還原、氧化與加成反應
     {"id": "T_REDUCTION_CARBONYL", "name": "羰基還原反應 (Carbonyl Reduction)", "smarts": "[CX3:1](=[OX1:2])>>[CX4:1]-[OX2H1:2]"},
-    {"id": "T_OXIDATION_ALCOHOL", "name": "醇氧化反應 (Alcohol Oxidation)", "smarts": "[CX4H2:1]-[OX2H1:2]>>[CX3:1]=[OX1:2]"}
+    {"id": "T_OXIDATION_ALCOHOL", "name": "醇氧化反應 (Alcohol Oxidation)", "smarts": "[CX4H2:1]-[OX2H1:2]>>[CX3:1]=[OX1:2]"},
+    {"id": "T_OXIDATION_ALDEHYDE", "name": "醛氧化反應 (Aldehyde Oxidation)", "smarts": "[CX3H1:1]=[OX1:2]>>[CX3:1](=[OX1:2])[OH]"},
+    {"id": "T_HYDROGENATION_ALKENE", "name": "烯烴加氫還原 (Alkene Hydrogenation)", "smarts": "[C:1]=[C:2].[H][H]>>[CX4:1][CX4:2]"},
+    {"id": "T_HYDRATION_ALKENE", "name": "烯烴水合反應 (Alkene Hydration)", "smarts": "[C:1]=[C:2].[O:3]>>[CX4:1]-[CX4:2][O:3]"},
+    
+    # 6. 命名重排與點擊化學
+    {"id": "T_WITTIG", "name": "Wittig 反應 (Wittig Olefination)", "smarts": "[CX3:1](=[O:2]).[C:3]=[P]([c:4])([c:5])[c:6]>>[CX3:1]=[C:3]"},
+    {"id": "T_CLICK_CHEMISTRY", "name": "點擊化學 (Alkyne-Azide Click)", "smarts": "[C:1]#[C:2].[N+:3]=[N-:4]=[N:5]>>[C:1]1=[C:2]-[N:5]-[N:4]=[N:3]1"},
+    {"id": "T_BECKMANN", "name": "Beckmann 重排反應", "smarts": "[C:1]=[N:2]-[OH:3]>>[C:1](=[O])-[NH:2]"}
 ]
 
 class LocalReactionPredictor:

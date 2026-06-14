@@ -267,12 +267,18 @@ async function triggerReaction(nodeA, nodeB) {
                 });
             }
 
-            statusBar.children[0].textContent = `✅ 反應成功：${data.equation}`;
+            statusBar.children[0].innerHTML = `✅ 反應成功：${data.equation} <button onclick="goToEdbo('${data.equation.replace(/'/g, "\\'")}', '${data.type.replace(/'/g, "\\'")}')" style="margin-left: 12px; background: var(--accent-color); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: background 0.2s;">📊 EDBO 條件優化</button>`;
         } else {
             statusBar.children[0].textContent = `❌ 無反應：${nodeA.value} 與 ${nodeB.value} 不發生化學變化。`;
         }
     } catch(e) { console.error(e); }
 }
+
+// 導向 EDBO 優化頁面
+window.goToEdbo = function(equation, type) {
+    window.location.href = `/edbo?equation=${encodeURIComponent(equation)}&type=${encodeURIComponent(type)}`;
+}
+
 
 window.clearBoard = function() {
     Object.values(nodes).forEach(n => board.removeChild(n.element));

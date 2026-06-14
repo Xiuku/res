@@ -1,62 +1,256 @@
 [
   {
-    "reactants": ["[H][H]", "ClCl"],
-    "products": ["Cl", "Cl"]
+    "reactants": [
+      "[H][H]",
+      "FF"
+    ],
+    "products": [
+      "F",
+      "F"
+    ]
   },
   {
-    "reactants": ["[H][H]", "FF"],
-    "products": ["F", "F"]
+    "reactants": [
+      "[H][H]",
+      "O=O"
+    ],
+    "products": [
+      "O"
+    ]
   },
   {
-    "reactants": ["[H][H]", "O=O"],
-    "products": ["O"]
+    "reactants": [
+      "CC(=O)O",
+      "CCO"
+    ],
+    "products": [
+      "CC(=O)OCC"
+    ]
   },
   {
-    "reactants": ["CC(=O)O", "CCO"],
-    "products": ["CC(=O)OCC"]
+    "reactants": [
+      "CC(=O)O",
+      "N"
+    ],
+    "products": [
+      "CC(N)=O"
+    ]
   },
   {
-    "reactants": ["CC(=O)O", "N"],
-    "products": ["CC(N)=O"]
+    "reactants": [
+      "[C]",
+      "O=O"
+    ],
+    "products": [
+      "O=C=O"
+    ]
   },
   {
-    "reactants": ["[C]", "O=O"],
-    "products": ["O=C=O"]
+    "reactants": [
+      "c1ccccc1Br",
+      "c1ccccc1B(O)O"
+    ],
+    "products": [
+      "c1ccc(-c2ccccc2)cc1"
+    ]
   },
   {
-    "reactants": ["c1ccccc1Br", "c1ccccc1B(O)O"],
-    "products": ["c1ccc(-c2ccccc2)cc1"]
+    "reactants": [
+      "CC(=O)C",
+      "C[Mg]Br"
+    ],
+    "products": [
+      "CC(C)(C)O"
+    ]
   },
   {
-    "reactants": ["CC(=O)C", "C[Mg]Br"],
-    "products": ["CC(C)(C)O"]
+    "reactants": [
+      "CCO",
+      "CCO"
+    ],
+    "products": [
+      "CCOCC"
+    ]
   },
   {
-    "reactants": ["CCO", "CCO"],
-    "products": ["CCOCC"]
+    "reactants": [
+      "C=CC=C",
+      "C=C"
+    ],
+    "products": [
+      "C1CC=CCC1"
+    ]
   },
   {
-    "reactants": ["C=CC=C", "C=C"],
-    "products": ["C1CC=CCC1"]
+    "reactants": [
+      "c1ccccc1",
+      "CCl"
+    ],
+    "products": [
+      "Cc1ccccc1"
+    ]
   },
   {
-    "reactants": ["c1ccccc1", "CCl"],
-    "products": ["Cc1ccccc1"]
+    "reactants": [
+      "CC(=O)OCC",
+      "O"
+    ],
+    "products": [
+      "CC(=O)O",
+      "CCO"
+    ]
   },
   {
-    "reactants": ["CC(=O)OCC", "O"],
-    "products": ["CC(=O)O", "CCO"]
+    "reactants": [
+      "CC(=O)C",
+      "CN"
+    ],
+    "products": [
+      "CC(=NC)C"
+    ]
   },
   {
-    "reactants": ["CC(=O)C", "CN"],
-    "products": ["CC(=NC)C"]
+    "reactants": [
+      "CC(=O)C"
+    ],
+    "products": [
+      "CC(O)C"
+    ]
   },
   {
-    "reactants": ["CC(=O)C"],
-    "products": ["CC(O)C"]
+    "reactants": [
+      "CCO"
+    ],
+    "products": [
+      "CC=O"
+    ]
   },
   {
-    "reactants": ["CCO"],
-    "products": ["CC=O"]
+    "reactants": [
+      "[H]",
+      "[Cl]"
+    ],
+    "products": [
+      "[H]Cl"
+    ]
+  },
+  {
+    "reactants": [
+      "[Ca+2].[O-2]",
+      "O=C=O"
+    ],
+    "products": [
+      "O=C([O-])[O-].[Ca+2]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Na]",
+      "ClCl"
+    ],
+    "products": [
+      "[Na+].[Cl-]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Na+].[OH-]",
+      "Cl"
+    ],
+    "products": [
+      "[Na+].[Cl-]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Na+].[OH-]",
+      "O=S(=O)(O)O"
+    ],
+    "products": [
+      "[Na+].[Na+].[O-]S(=O)(=O)[O-]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Na+].[OH-]",
+      "O=[N+]([O-])O"
+    ],
+    "products": [
+      "[Na+].O=[N+]([O-])[O-]"
+    ]
+  },
+  {
+    "reactants": [
+      "c1ccccc1",
+      "O=[N+]([O-])O"
+    ],
+    "products": [
+      "O=[N+]([O-])c1ccccc1"
+    ]
+  },
+  {
+    "reactants": [
+      "c1ccccc1",
+      "O=S(=O)(O)O"
+    ],
+    "products": [
+      "O=S(=O)(O)c1ccccc1"
+    ]
+  },
+  {
+    "reactants": [
+      "CC(=O)OCC",
+      "[Na+].[OH-]"
+    ],
+    "products": [
+      "CC(=O)[O-].[Na+]",
+      "CCO"
+    ]
+  },
+  {
+    "reactants": [
+      "[Na]",
+      "Cl"
+    ],
+    "products": [
+      "[Na+].[Cl-]"
+    ]
+  },
+  {
+    "reactants": [
+      "CC=O"
+    ],
+    "products": [
+      "CC(=O)O"
+    ]
+  },
+  {
+    "reactants": [
+      "[Mg]",
+      "O=O"
+    ],
+    "products": [
+      "O=[Mg]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Mg]",
+      "O"
+    ],
+    "products": [
+      "O=[Mg]",
+      "[H][H]"
+    ]
+  },
+  {
+    "reactants": [
+      "[Mg]",
+      "O=C=O"
+    ],
+    "products": [
+      "O=[Mg]",
+      "[C]"
+    ]
   }
 ]

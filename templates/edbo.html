@@ -460,6 +460,62 @@
     </div>
 
     <script>
+        // Preset Reaction Data for EDBO
+        const REACTION_PRESETS = {
+            '鹵素化反應': {
+                parameters: {
+                    'temperature': [20, 40, 60, 80],
+                    'pressure': [1, 2, 5, 10]
+                },
+                history: [
+                    { 'temperature': 20, 'pressure': 1, 'yield': 15.0 },
+                    { 'temperature': 40, 'pressure': 2, 'yield': 45.0 }
+                ],
+                target_col: 'yield',
+                maximize: true,
+                description: '正在針對 [鹵素化反應 (Halogenation)，如 H + Cl = HCl] 進行優化：調整反應溫度 (°C) 與反應壓力 (atm) 以最大化產率。'
+            },
+            'esterification': {
+                parameters: {
+                    'temperature': [50, 70, 90, 110],
+                    'catalyst_load': [1.0, 2.5, 5.0, 10.0]
+                },
+                history: [
+                    { 'temperature': 50, 'catalyst_load': 1.0, 'yield': 22.0 },
+                    { 'temperature': 70, 'catalyst_load': 5.0, 'yield': 58.0 }
+                ],
+                target_col: 'yield',
+                maximize: true,
+                description: '正在針對 [酯化反應 (Esterification)] 進行優化：調整溫度 (°C) 與觸媒用量 (mol%)。'
+            },
+            'amidation': {
+                parameters: {
+                    'temperature': [25, 50, 75, 100],
+                    'solvent_ratio': [2.0, 5.0, 10.0, 15.0]
+                },
+                history: [
+                    { 'temperature': 25, 'solvent_ratio': 5.0, 'yield': 30.0 },
+                    { 'temperature': 50, 'solvent_ratio': 10.0, 'yield': 65.0 }
+                ],
+                target_col: 'yield',
+                maximize: true,
+                description: '正在針對 [醯胺化反應 (Amidation)] 進行優化：調整溫度 (°C) 與溶劑比例。'
+            },
+            'suzuki': {
+                parameters: {
+                    'temperature': [60, 80, 100, 120],
+                    'concentration': [0.05, 0.1, 0.2, 0.5]
+                },
+                history: [
+                    { 'temperature': 60, 'concentration': 0.1, 'yield': 35.0 },
+                    { 'temperature': 80, 'concentration': 0.2, 'yield': 72.0 }
+                ],
+                target_col: 'yield',
+                maximize: true,
+                description: '正在針對 [Suzuki Coupling 偶聯反應] 進行優化：評估溫度 (°C) 與反應物濃度 (M) 以取得最高產率。'
+            }
+        };
+
         // Core state management
         let parameters = {
             'temperature': [20, 40, 60, 80],
@@ -474,8 +530,35 @@
         let lastSuggestedExperiment = null;
         let chartInstance = null;
 
+        function loadPresetFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const equation = urlParams.get('equation');
+            const rxnType = urlParams.get('type');
+
+            if (equation && rxnType) {
+                let matchedPreset = null;
+                Object.entries(REACTION_PRESETS).forEach(([key, preset]) => {
+                    if (rxnType.toLowerCase().includes(key.toLowerCase())) {
+                        matchedPreset = preset;
+                    }
+                });
+
+                const statusBarText = document.getElementById('status-bar').children[0];
+                let description = matchedPreset ? matchedPreset.description : `正在針對此反應進行 EDBO 條件最佳化。`;
+                statusBarText.innerHTML = `🎯 <strong>反應優化中：</strong> <code style="background:rgba(255,255,255,0.2); padding: 2px 6px; border-radius:4px; font-family:monospace;">${equation}</code> (${rxnType})<br><span style="font-size:0.85rem; opacity:0.95;">${description}</span>`;
+
+                if (matchedPreset) {
+                    parameters = JSON.parse(JSON.stringify(matchedPreset.parameters));
+                    historyData = JSON.parse(JSON.stringify(matchedPreset.history));
+                    document.getElementById('target-col-input').value = matchedPreset.target_col;
+                    document.getElementById('maximize-select').value = matchedPreset.maximize.toString();
+                }
+            }
+        }
+
         // Initialize Page
         document.addEventListener('DOMContentLoaded', () => {
+            loadPresetFromUrl();
             renderParameters();
             renderHistoryTable();
             renderAddHistoryForm();
